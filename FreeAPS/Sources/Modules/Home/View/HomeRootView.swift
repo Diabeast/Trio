@@ -357,38 +357,43 @@ extension Home {
         }
 
         var mainChart: some View {
-            ZStack {
-                if state.animatedBackground {
-                    SpriteView(scene: spriteScene, options: [.allowsTransparency])
-                        .ignoresSafeArea()
-                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-                }
+            VStack {
+                ZStack {
+                    if state.animatedBackground {
+                        SpriteView(scene: spriteScene, options: [.allowsTransparency])
+                            .ignoresSafeArea()
+                            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                    }
 
-                MainChartView(
-                    glucose: $state.glucose,
-                    suggestion: $state.suggestion,
-                    tempBasals: $state.tempBasals,
-                    boluses: $state.boluses,
-                    suspensions: $state.suspensions,
-                    hours: .constant(state.filteredHours),
-                    maxBasal: $state.maxBasal,
-                    autotunedBasalProfile: $state.autotunedBasalProfile,
-                    basalProfile: $state.basalProfile,
-                    tempTargets: $state.tempTargets,
-                    carbs: $state.carbs,
-                    timerDate: $state.timerDate,
-                    units: $state.units,
-                    smooth: $state.smooth,
-                    highGlucose: $state.highGlucose,
-                    lowGlucose: $state.lowGlucose,
-                    screenHours: $state.screenHours,
-                    displayXgridLines: $state.displayXgridLines,
-                    displayYgridLines: $state.displayYgridLines,
-                    thresholdLines: $state.thresholdLines
-                )
+                    MainChartView(
+                        glucose: $state.glucose,
+                        suggestion: $state.suggestion,
+                        tempBasals: $state.tempBasals,
+                        boluses: $state.boluses,
+                        suspensions: $state.suspensions,
+                        hours: .constant(state.filteredHours),
+                        maxBasal: $state.maxBasal,
+                        autotunedBasalProfile: $state.autotunedBasalProfile,
+                        basalProfile: $state.basalProfile,
+                        tempTargets: $state.tempTargets,
+                        carbs: $state.carbs,
+                        timerDate: $state.timerDate,
+                        units: $state.units,
+                        smooth: $state.smooth,
+                        highGlucose: $state.highGlucose,
+                        lowGlucose: $state.lowGlucose,
+                        screenHours: $state.screenHours,
+                        displayXgridLines: $state.displayXgridLines,
+                        displayYgridLines: $state.displayYgridLines,
+                        thresholdLines: $state.thresholdLines
+                    )
+                    .frame(height: 300)
+                }
+                .padding(.bottom)
+                .modal(for: .dataTable, from: self)
+
+                Spacer()
             }
-            .padding(.bottom)
-            .modal(for: .dataTable, from: self)
         }
 
         @ViewBuilder private func profiles(_: GeometryProxy) -> some View {

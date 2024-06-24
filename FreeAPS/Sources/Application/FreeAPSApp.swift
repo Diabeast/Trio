@@ -66,6 +66,7 @@ import Swinject
                 .environment(\.managedObjectContext, dataController.persistentContainer.viewContext)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
+                .preferredColorScheme(.dark)
         }
         .onChange(of: scenePhase) { newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
