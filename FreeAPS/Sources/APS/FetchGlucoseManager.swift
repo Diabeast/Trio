@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import HealthKit
 import LoopKit
 import LoopKitUI
 import SwiftDate
@@ -98,11 +99,20 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         settingsManager.settings.uploadGlucose = cgmM.shouldSyncToRemoteService
     }
 
+    private func updateManagerUnits(_ manager: CGMManagerUI?) {
+        let units = settingsManager.settings.units
+        let managerName = cgmManager.map { "\(type(of: $0))" } ?? "nil"
+        let loopkitUnits: HKUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+        print("manager: \(managerName) is changing units to: \(loopkitUnits.description) ")
+        manager?.unitDidChange(to: loopkitUnits)
+    }
+
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
         // if changed, remove all calibrations
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
             removeCalibrations()
             cgmManager = nil
+            glucoseSource = nil
         }
 
         self.cgmGlucoseSourceType = cgmGlucoseSourceType
@@ -119,27 +129,30 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             removeCalibrations()
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
+            updateManagerUnits(cgmManager)
+
         } else {
             saveConfigManager()
         }
 
-        switch self.cgmGlucoseSourceType {
-        case .none:
-            glucoseSource = nil
-        case .xdrip:
-            glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
-        case .nightscout:
-            glucoseSource = nightscoutManager
-        case .simulator:
-            glucoseSource = simulatorSource
-        case .glucoseDirect:
-            glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
-        case .enlite:
-            glucoseSource = deviceDataManager
-        case .plugin:
-            glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+        if glucoseSource == nil {
+            switch self.cgmGlucoseSourceType {
+            case .none:
+                glucoseSource = nil
+            case .xdrip:
+                glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
+            case .nightscout:
+                glucoseSource = nightscoutManager
+            case .simulator:
+                glucoseSource = simulatorSource
+            case .glucoseDirect:
+                glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
+            case .enlite:
+                glucoseSource = deviceDataManager
+            case .plugin:
+                glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+            }
         }
-        // update the config
     }
 
     /// Upload cgmManager from raw value
@@ -149,7 +162,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         else {
             return nil
         }
-
         return Manager.init(rawState: rawState)
     }
 
